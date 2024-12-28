@@ -6,6 +6,9 @@
     - service: 
         name: nginx
         state: stopped
+    - wait_for: 
+        port: 80
+        status: drained
 
 - hosts: webserver
   gather_facts: false
@@ -14,6 +17,9 @@
     - service: 
         name: apache2
         state: stopped
+    - wait_for: 
+        port: 80
+        status: drained
 
 - hosts: database
   gather_facts: false
@@ -21,7 +27,10 @@
   tasks:
     - service: 
         name: mysql
-        state: stopped
+        state: restarted
+    - wait_for: 
+        port: 3306
+        status: started
       
 - hosts: loadbalancer
   gather_facts: false
@@ -30,6 +39,8 @@
     - service: 
         name: nginx
         state: started
+    - wait_for: 
+        port: 80
 
 - hosts: webserver
   gather_facts: false
@@ -38,13 +49,8 @@
     - service: 
         name: apache2
         state: started
+    - wait_for: 
+        port: 80
 
-- hosts: database
-  gather_facts: false
-  become: true
-  tasks:
-    - service: 
-        name: mysql
-        state: started
 
 
