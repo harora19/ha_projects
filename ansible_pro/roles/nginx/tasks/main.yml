@@ -1,0 +1,43 @@
+---
+    - name: install tools
+      apt:
+        name: "{{ item }}"
+        state: present 
+        update_cache: yes
+      loop:
+        - curl
+        - python3-httplib2 
+
+    - name: install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: ensure nginx started
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: configure nginx site
+      template: 
+        src: nginx.conf.j2 
+        dest: /etc/nginx/sites-available/demo
+        mode: 0755
+      notify: restart nginx
+
+    - name: deactivate default site
+      file: 
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
+    
+    - name: activate nginx demo site
+      file:
+        src: /etc/nginx/sites-available/demo 
+        dest: /etc/nginx/sites-enabled/demo 
+        state: link
+      notify: restart nginx
+
+# tasks file for nginx

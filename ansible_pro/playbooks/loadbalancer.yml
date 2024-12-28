@@ -2,50 +2,6 @@
 - hosts: loadbalancer
   gather_facts: false
   become: true
-  tasks:
-    - name: install tools
-      apt:
-        name: "{{ item }}"
-        state: present 
-        update_cache: yes
-      loop:
-        - curl
-        - python-httplib2 
+  roles:
+    - nginx
 
-    - name: install nginx
-      apt:
-        name: nginx
-        state: present
-        update_cache: yes
-
-    - name: ensure nginx started
-      service:
-        name: nginx
-        state: started
-        enabled: yes
-
-    - name: configure nginx site
-      template: 
-        src: /Users/haarora/Documents/hastudy/ha_learning/ans_pro/templates/nginx.conf.j2 
-        dest: /etc/nginx/sites-available/demo
-        mode: 0755
-      notify: restart nginx
-
-    - name: deactivate default site
-      file: 
-        path: /etc/nginx/sites-enabled/default
-        state: absent
-      notify: restart nginx
-    
-    - name: activate nginx demo site
-      file:
-        src: /etc/nginx/sites-available/demo 
-        dest: /etc/nginx/sites-enabled/demo 
-        state: link
-      notify: restart nginx
-
-  handlers:
-    - name: restart nginx
-      service:
-        name: nginx
-        state: restarted
