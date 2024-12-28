@@ -27,10 +27,15 @@
         mode: 0755
       notify: restart nginx
 
+    - name: get active sites 
+      shell: ls -1 /etc/nginx/sites/enabled
+      register: active
+
     - name: deactivate default site
       file: 
-        path: /etc/nginx/sites-enabled/default
+        path: /etc/nginx/sites-enabled/{{ item }}
         state: absent
+      with_items: "{{ active.stdout_lines }}"
       notify: restart nginx
     
     - name: activate nginx demo site

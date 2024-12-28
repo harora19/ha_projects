@@ -17,7 +17,7 @@
     #   lineinfile: 
     #     dest: /etc/mysql/my.cnf 
     #     regexp: ^bind-address
-    #     line: "bind-address = 0.0.0.0"
+    #     line: "bind-address = {{ ansible_default_ipv4.address }}"
     #   notify: restart mysql-server
     - name: ensure mysql-server started
       service:
@@ -25,16 +25,16 @@
         state: started
         enabled: yes
         
-    - name: create demo database  
+    - name: create  database  
       mysql_db:
-        name: demo 
+        name: "{{ db_name }}" 
         state: present 
 
-    - name: create demo user
+    - name: create user
       mysql_user:
-        name: demo 
-        password: demo 
-        priv: demo.*ALL 
-        host: '%'
+        name: "{{ db_user_name }}" 
+        password: "{{  db_user_pass }}" 
+        priv: "{{ db_name }}".*ALL 
+        host: "{{ db_user_host }}"
         state: present 
 # tasks file for mysql
