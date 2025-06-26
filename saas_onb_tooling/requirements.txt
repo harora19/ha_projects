@@ -1,0 +1,6 @@
+requests 
+regex 
+ldap3 
+apache-airflow
+GitPython 
+python-gitlab

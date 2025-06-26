@@ -1,0 +1,156 @@
+stages:
+  - validate_team_exists
+  - git_approver_status
+  # - ldap_sync
+  - saas_gitops
+  - saas_work_onb
+  - push_tmpl_files
+ 
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - when: never  # Ensures pipeline never runs unless conditions are met
+
+# workflow:
+#   rules:
+#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && 
+#             $CI_MERGE_REQUEST_APPROVED == "true" && 
+#             $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^(main|$CI_DEFAULT_BRANCH)$/'
+#     - when: never  # Ensures pipeline never runs unless conditions are met
+
+validate_team_exists:
+  stage: validate_team_exists
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python ci_scripts/onb_team_check.py
+  tags:
+    - shared-podman
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - dags/**
+        - dags/scripts/**
+        - .gitlab-ci.yml
+
+git_approver_status:
+  stage: git_approver_status
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python ci_scripts/approverStatus.py
+  tags:
+    - shared-podman
+  rules:
+  - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+# ldap_sync:
+#   stage: ldap_sync
+#   image: registry.access.redhat.com/ubi9/ubi
+#   tags:
+#     - shared-podman
+#   before_script:
+#     - dnf install -y openldap-clients python-pip
+#     - pip3 install -r requirements.txt
+#   script:
+#     - FILE_CONTENT=$(cat dags/scripts/add_rover_group.txt)
+#     - echo $FILE_CONTENT
+#     - python3 dags/scripts/saasRoverSyncup.py dags/scripts/add_rover_group.txt
+#   rules:
+#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+#       changes:
+#     #     - '*'
+#     #     - '**/*'
+#     # - when: never  # Ensures pipeline never runs unless conditions are met
+#         - dags/**
+#         - dags/scripts/**
+#         - .gitlab-ci.yml
+  # rules:
+  #   - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_APPROVED == "true"
+  #   - when: never
+
+gitops_onboard:
+  stage: saas_gitops
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python ci_scripts/gitops_saas.py
+  tags:
+    - shared-podman
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+    #     - '*'
+    #     - '**/*'
+    # - when: never  # Ensures pipeline never runs unless conditions are met
+        - dags/**
+        - dags/scripts/**
+        - .gitlab-ci.yml  
+  # rules:
+  #   - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_APPROVED == "true"
+  #   - when: never
+
+gitops_prefix_codeowner:
+  stage: saas_gitops
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python ci_scripts/gitops_upd.py
+  tags:
+    - shared-podman
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+    #     - '*'
+    #     - '**/*'
+    # - when: never  # Ensures pipeline never runs unless conditions are met
+        - dags/**
+        - dags/scripts/**
+        - .gitlab-ci.yml
+  # rules:
+  #   - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_APPROVED == "true"
+  #   - when: never
+
+saas_work_onb:
+  stage: saas_work_onb
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python ci_scripts/saas_upd_work.py
+  tags:
+    - shared-podman
+  rules:
+  - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    changes:
+  #       - '*'
+  #       - '**/*'
+  # - when: never
+      - dags/**
+      - dags/scripts/**
+      - .gitlab-ci.yml 
+  # rules:
+  #   - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_APPROVED == "true"
+  #   - when: never
+
+push_tmpl_files:
+  stage: push_tmpl_files
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python ci_scripts/push_tmpl_files.py
+  tags:
+    - shared-podman
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - ci_checks/**/*
+        - include/**/*
+        - plugins/**/*
