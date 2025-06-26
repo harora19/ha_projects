@@ -1,0 +1,24 @@
+stages:
+  - ven_sync
+
+sync_ven1:
+  stage: ven_sync
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install awscli
+  script:
+    - chmod +x vndr_sync.sh
+    - sh -x vndr_sync.sh $vndr_pre_name1
+  tags:
+    - shared-podman
+
+sync_ven2:
+  stage: ven_sync
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install awscli
+  script:
+    - chmod +x vndr_sync.sh
+    - sh -x vndr_sync.sh $vndr_pre_name2
+  tags:
+    - shared-podman
