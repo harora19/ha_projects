@@ -1,0 +1,22 @@
+stages:
+    - test
+
+unload_dw:
+  stage: test
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python unload.py dw
+  tags:
+    - shared-runner
+
+unload_dw_pre:
+  stage: test
+  image: registry.access.redhat.com/ubi9/python-39
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python unload.py dw_pre
+  tags:
+    - idp-ci-us-west-2
